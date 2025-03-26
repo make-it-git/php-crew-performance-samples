@@ -11,6 +11,7 @@ This project demonstrates different database access methods in Symfony with perf
 - Docker Compose configuration
 - k6 performance testing
 - Makefile for common commands
+- Interactive PHP CLI container
 
 ## Prerequisites
 
@@ -62,6 +63,25 @@ make test-redis
 - `make create-migration` - Create new migration
 - `make clean` - Clean up containers and volumes
 - `make logs` - View container logs
+
+### PHP CLI Commands
+
+- `make php-cli` - Run PHP CLI commands
+- `make php-shell` - Start interactive PHP shell
+- `make symfony-console` - Run Symfony console commands
+
+Examples:
+```bash
+# Run a PHP script
+make php-cli script.php
+
+# Start interactive PHP shell
+make php-shell
+
+# Run Symfony console commands
+make symfony-console cache:clear
+make symfony-console doctrine:schema:update
+```
 
 ## Performance Optimizations
 
