@@ -19,6 +19,12 @@ RUN docker-php-ext-install \
     intl \
     opcache
 
+RUN apk update && apk add --no-cache \
+    postgresql-client \
+    postgresql-dev \
+    php84-pgsql \
+    php84-pdo_pgsql
+
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
 
