@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - APP_ENV=dev
+      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+      - REDIS_URL=redis://redis:6379
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=symfony
+      - POSTGRES_USER=symfony
+      - POSTGRES_PASSWORD=symfony
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data: 
