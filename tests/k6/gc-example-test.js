@@ -15,7 +15,7 @@ const scenarios = {
         executor: 'constant-arrival-rate',
         rate: 1000, // 1000 RPS
         timeUnit: '1s',
-        duration: '2m',
+        duration: '5m',
         preAllocatedVUs: 1000,
         maxVUs: 1500,
     },
@@ -23,10 +23,10 @@ const scenarios = {
         executor: 'constant-arrival-rate',
         rate: 1000, // 1000 RPS
         timeUnit: '1s',
-        duration: '1m',
+        duration: '5m',
         preAllocatedVUs: 1000,
         maxVUs: 1500,
-        startTime: '2m', // Начинаем после завершения первого сценария
+        startTime: '5m', // Начинаем после завершения первого сценария
     }
 };
 
