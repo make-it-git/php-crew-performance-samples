@@ -47,6 +47,15 @@ test-doctrine:
 test-redis:
 	k6 run tests/k6/redis-test.js
 
+test-gc:
+	k6 run tests/k6/gc-example-test.js
+
+test-gc-without:
+	k6 run tests/k6/gc-example-test.js --scenario without_gc
+
+test-gc-with:
+	k6 run tests/k6/gc-example-test.js --scenario with_gc
+
 # Database commands
 migrate:
 	docker compose exec php php bin/console doctrine:migrations:migrate

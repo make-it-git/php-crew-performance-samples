@@ -23,7 +23,9 @@ RUN apk update && apk add --no-cache \
     postgresql-client \
     postgresql-dev \
     php84-pgsql \
-    php84-pdo_pgsql
+    php84-pdo_pgsql \
+    tar \
+    curl
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
