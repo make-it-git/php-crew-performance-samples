@@ -5,6 +5,7 @@ WORKDIR /var/www/html
 
 # Copy composer files
 COPY composer.json ./
+COPY config/preload.php /var/www/html/config/preload.php
 
 # Install dependencies and optimize autoloader
 RUN --mount=type=cache,target=/root/.composer/ composer install --no-dev --no-scripts --no-autoloader \

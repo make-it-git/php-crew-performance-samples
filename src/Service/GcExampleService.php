@@ -15,13 +15,13 @@ class GcExampleService
     public function getLargeData(): array
     {
         $largeData = [];
-        for ($i = 0; $i < 100; $i++) {
+        for ($i = 0; $i < 1000; $i++) {
             $largeData[] = [
                 'id' => $i,
                 'data' => str_repeat('x', 1000),
                 'metadata' => [
                     'timestamp' => time(),
-                    'random' => bin2hex(random_bytes(100)),
+                    'random' => bin2hex(random_bytes(1000)),
                 ]
             ];
         }
