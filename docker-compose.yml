@@ -13,6 +13,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - migrations
     environment:
       - APP_ENV=prod
       - APP_DEBUG=0
@@ -20,11 +21,26 @@ services:
       - REDIS_URL=redis://redis:6379
     command: php-fpm
     healthcheck:
-      test: ["CMD", "php-fpm -t"] # Or a more specific check
+      test: ["CMD", "php-fpm -t"]
       interval: 5s
       timeout: 3s
       retries: 3
       start_period: 5s
+
+  migrations:
+    container_name: migrations
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - APP_ENV=prod
+      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: php bin/console doctrine:migrations:migrate --no-interaction
 
   php-fpm-exporter:
     container_name: php-fpm-exporter
@@ -77,6 +93,11 @@ services:
       - POSTGRES_PASSWORD=symfony
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U symfony -d symfony"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     container_name: redis
