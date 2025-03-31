@@ -1,0 +1,9 @@
+monolog:
+    handlers:
+        main:
+            type: rotating_file
+            path: '%kernel.logs_dir%/%kernel.environment%.log'
+            filename_format: '{date}-{filename}-{index}'
+            max_files: 7
+            level: debug
+            channels: ['!event']

@@ -50,6 +50,9 @@ test-redis:
 test-gc:
 	k6 run tests/k6/gc-example-test.js
 
+test-json:
+	k6 run tests/k6/json-data-test.js
+
 # Database commands
 migrate:
 	docker compose exec php php bin/console doctrine:migrations:migrate

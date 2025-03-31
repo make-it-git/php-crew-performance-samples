@@ -12,16 +12,4 @@ class JsonDataRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, JsonData::class);
     }
-
-    public function getRawData(int $id): ?string
-    {
-        $result = $this->createQueryBuilder('j')
-            ->select('j.data')
-            ->where('j.id = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getSingleResult();
-
-        return $result ? $result['data'] : null;
-    }
 } 
