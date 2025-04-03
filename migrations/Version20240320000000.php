@@ -36,7 +36,7 @@ final class Version20240320000000 extends AbstractMigration
     private function generateRandomJsonData(): array
     {
         $data = [];
-        $targetSize = 100 * 1024; // 100KB in bytes
+        $targetSize = 1000 * 1024; // 1mib
         $currentSize = 0;
 
         while ($currentSize < $targetSize) {
