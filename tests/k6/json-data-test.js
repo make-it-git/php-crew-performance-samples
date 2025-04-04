@@ -13,7 +13,7 @@ const { SCENARIO } = __ENV;
 const scenarios = {
     // json: {
     //     executor: 'constant-arrival-rate',
-    //     rate: 100, // 1000 RPS
+    //     rate: 100, // 100 RPS
     //     timeUnit: '1s',
     //     duration: '5m',
     //     preAllocatedVUs: 100,
@@ -21,12 +21,11 @@ const scenarios = {
     // },
     string: {
         executor: 'constant-arrival-rate',
-        rate: 100, // 1000 RPS
+        rate: 100, // 100 RPS
         timeUnit: '1s',
         duration: '5m',
         preAllocatedVUs: 100,
         maxVUs: 100,
-        // startTime: '5m', // Начинаем после завершения первого сценария
     }
 };
 

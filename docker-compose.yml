@@ -17,7 +17,8 @@ services:
     environment:
       - APP_ENV=prod
       - APP_DEBUG=0
-      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+      # - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+      - DATABASE_URL=postgresql://symfony:symfony@pgbouncer:5432/symfony?serverVersion=15&charset=utf8
       - REDIS_URL=redis://redis:6379
     command: php-fpm
     healthcheck:
@@ -33,12 +34,16 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     volumes:
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/my-php.ini
       - ./:/var/www/html
     environment:
       - APP_ENV=prod
-      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+      # - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+      - DATABASE_URL=postgresql://symfony:symfony@pgbouncer:5432/symfony?serverVersion=15&charset=utf8
     depends_on:
       postgres:
+        condition: service_healthy
+      pgbouncer:
         condition: service_healthy
     command: php bin/console doctrine:migrations:migrate --no-interaction
 
@@ -67,7 +72,8 @@ services:
       - redis
     environment:
       - APP_ENV=prod
-      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+      # - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/symfony?serverVersion=15&charset=utf8
+      - DATABASE_URL=postgresql://symfony:symfony@pgbouncer:5432/symfony?serverVersion=15&charset=utf8
       - REDIS_URL=redis://redis:6379
     stdin_open: true
     tty: true
@@ -161,3 +167,22 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+  
+  pgbouncer:
+    container_name: pgbouncer
+    image: edoburu/pgbouncer
+    environment:
+      DB_USER: symfony
+      DB_PASSWORD: symfony
+      DB_HOST: postgres
+      DB_NAME: symfony
+      POOL_MODE: transaction
+      AUTH_TYPE: scram-sha-256
+      ADMIN_USERS: symfony
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U symfony -d symfony -h postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

@@ -13,7 +13,7 @@ const { SCENARIO } = __ENV;
 const scenarios = {
     without_gc: {
         executor: 'constant-arrival-rate',
-        rate: 1000, // 100 RPS
+        rate: 1000, // 1000 RPS
         timeUnit: '1s',
         duration: '5m',
         preAllocatedVUs: 1000,
