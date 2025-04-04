@@ -13,21 +13,21 @@ const { SCENARIO } = __ENV;
 const scenarios = {
     without_gc: {
         executor: 'constant-arrival-rate',
-        rate: 1000, // 1000 RPS
+        rate: 1000, // 100 RPS
         timeUnit: '1s',
         duration: '5m',
         preAllocatedVUs: 1000,
         maxVUs: 1500,
     },
-    with_gc: {
-        executor: 'constant-arrival-rate',
-        rate: 1000, // 1000 RPS
-        timeUnit: '1s',
-        duration: '5m',
-        preAllocatedVUs: 1000,
-        maxVUs: 1500,
-        startTime: '5m', // Начинаем после завершения первого сценария
-    }
+    // with_gc: {
+    //     executor: 'constant-arrival-rate',
+    //     rate: 1000, // 100 RPS
+    //     timeUnit: '1s',
+    //     duration: '5m',
+    //     preAllocatedVUs: 1000,
+    //     maxVUs: 1500,
+    //     // startTime: '5m', // Начинаем после завершения первого сценария
+    // }
 };
 
 export const options = {

@@ -5,11 +5,12 @@ namespace App\Service;
 class GcExampleService
 {
     private int $callCount = 0;
-    private int $gcThreshold;
+    private int $gcThreshold = 10;
+    private ObjectCache $cache;
 
-    public function __construct(int $gcThreshold = 10)
+    public function __construct(ObjectCache $cache)
     {
-        $this->gcThreshold = $gcThreshold;
+        $this->cache = $cache;
     }
 
     public function getLargeData(): array
