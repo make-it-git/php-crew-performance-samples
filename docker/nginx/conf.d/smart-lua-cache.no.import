@@ -1,8 +1,8 @@
 lua_package_path "/usr/local/openresty/nginx/lua/?.lua;;";
 
-lua_shared_dict my_cache 300m;
-
 # proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=api_cache:10m max_size=100m inactive=60m use_temp_path=off;
+
+lua_shared_dict my_cache 10m;
 
 server {
     listen 80;
@@ -69,7 +69,7 @@ server {
                     content_type = content_type
                 }
                 local cache_string = cjson.encode(cache_value)
-                local ok, err = my_cache:set(cache_key, cache_string, 900)  -- Cache for 900 seconds
+                local ok, err = my_cache:set(cache_key, cache_string, 600)  -- Cache for 600 seconds
                 if not ok then
                     ngx.log(ngx.ERR, "Failed to set cache: ", err)
                     return
