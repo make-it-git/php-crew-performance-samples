@@ -37,6 +37,7 @@ final class Version20240320000000 extends AbstractMigration
     {
         $data = [];
         $targetSize = 100_000;
+        $targetSize = 2000;
         $currentSize = 0;
 
         while ($currentSize < $targetSize) {
