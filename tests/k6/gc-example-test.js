@@ -11,23 +11,22 @@ const latencyTrend = new Trend('latency');
 const { SCENARIO } = __ENV;
 
 const scenarios = {
-    without_gc: {
+    //without_gc: {
+    //    executor: 'constant-arrival-rate',
+    //    rate: 300, // 300 RPS
+    //    timeUnit: '1s',
+    //    duration: '5m',
+    //    preAllocatedVUs: 1000,
+    //    maxVUs: 1500,
+    //},
+    with_gc: {
         executor: 'constant-arrival-rate',
-        rate: 1000, // 1000 RPS
+        rate: 300, // 300 RPS
         timeUnit: '1s',
         duration: '5m',
         preAllocatedVUs: 1000,
         maxVUs: 1500,
-    },
-    // with_gc: {
-    //     executor: 'constant-arrival-rate',
-    //     rate: 1000, // 100 RPS
-    //     timeUnit: '1s',
-    //     duration: '5m',
-    //     preAllocatedVUs: 1000,
-    //     maxVUs: 1500,
-    //     // startTime: '5m', // Начинаем после завершения первого сценария
-    // }
+    }
 };
 
 export const options = {
@@ -44,10 +43,12 @@ const BASE_URL = 'http://localhost:8080/api';
 export default function () {
     const currentScenario = exec.scenario.name;
     const gcThreshold = currentScenario === 'with_gc' ? 100 : 10_000;
+    const iteration = exec.scenario.iterationInTest;
+    const shouldCollectGc = iteration % gcThreshold === 0;
 
     // Делаем запрос к endpoint'у
     const startTime = Date.now();
-    const response = http.get(`${BASE_URL}/gc-example?gc_threshold=${gcThreshold}`);
+    const response = http.get(`${BASE_URL}/gc-example${shouldCollectGc ? '?collect_gc=1' : ''}`);
     const endTime = Date.now();
     
     // Записываем метрики
@@ -57,8 +58,6 @@ export default function () {
     const checks = check(response, {
         'status is 200': (r) => r.status === 200,
         'response has data': (r) => r.json('data') !== undefined,
-        'response has gc_threshold': (r) => r.json('gc_threshold') === gcThreshold,
-        'response has garbage_collected field': (r) => r.json('garbage_collected') !== undefined,
     });
 
     // Отмечаем ошибки

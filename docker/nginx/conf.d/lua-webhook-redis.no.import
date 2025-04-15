@@ -1,0 +1,135 @@
+lua_package_path "/usr/local/openresty/nginx/lua/?.lua;;";
+
+lua_shared_dict my_cache 300m;
+
+resolver 127.0.0.11 valid=30s;  # Docker's internal DNS
+
+server {
+    listen 80;
+    server_name localhost;
+    root /var/www/html/public;
+    
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location /api/webhook {
+        access_by_lua_block {
+            local redis = require "resty.redis"
+            local cjson = require "cjson"
+            local red = redis:new()
+            red:set_timeout(1000) -- 1 second timeout
+
+            -- Connect to Redis
+            local ok, err = red:connect("redis", 6379)
+            if not ok then
+                ngx.log(ngx.ERR, "Failed to connect to Redis: ", err)
+                ngx.exit(500)
+            end
+
+            -- Read and parse request body
+            ngx.req.read_body()
+            local body = ngx.req.get_body_data()
+            if not body then
+                ngx.log(ngx.ERR, "No request body found")
+                ngx.exit(400)
+            end
+
+            -- Append to Redis stream
+            local ok, err = red:xadd("webhook_stream", "*", "data", body)
+            if not ok then
+                ngx.log(ngx.ERR, "Failed to append to Redis stream: ", err)
+                ngx.exit(500)
+            end
+
+            -- Return success
+            ngx.status = 200
+            ngx.say("OK")
+            ngx.exit(200)
+        }
+    }
+
+    location ~ ^/api/string-data/(\d+)$ {
+        set $cache_key "";
+        access_by_lua_block {
+            local cache_control = require("cache_control")
+            local cjson = require("cjson")
+            local cache_key = cache_control.get_cache_key(ngx.var.uri)
+            local should_cache = cache_control.should_cache(cache_key)
+            if should_cache then
+                local my_cache = ngx.shared.my_cache
+                local cached_data = my_cache:get(cache_key)
+                if cached_data then
+                    ngx.log(ngx.ERR, "Cache hit for key: ", cache_key)
+                    local data = cjson.decode(cached_data)
+                    ngx.header["X-Cache"] = "true"
+                    ngx.header["Content-Type"] = data.content_type
+                    ngx.say(data.body)
+                    ngx.exit(ngx.OK) -- serve directly from cache
+                else
+                    ngx.log(ngx.ERR, "Cache miss for key: ", cache_key)
+                    ngx.var.cache_key = cache_key -- Store the cache key for later use
+                end
+            end
+        }
+        try_files $uri /index.php$is_args$args;
+    }
+
+    location = /phpinfo.php {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass php:9001;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; 
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+    location ~ \.php$ {
+
+        body_filter_by_lua_block {
+            local cjson = require("cjson")
+            local cache_key = ngx.var.cache_key
+            if cache_key == "" then
+                ngx.log(ngx.ERR, "No cache key; not caching.")
+                return
+            end
+            local my_cache = ngx.shared.my_cache
+            local body = ngx.ctx.buffered_body or ""
+            body = body .. ngx.arg[1]
+            ngx.ctx.buffered_body = body
+            if ngx.arg[2] then  -- `ngx.arg[2]` is true only for the last chunk
+                local content_type = ngx.header["Content-Type"] or "unknown"
+                local cache_value = {
+                    body = body,
+                    content_type = content_type
+                }
+                local cache_string = cjson.encode(cache_value)
+                local ok, err = my_cache:set(cache_key, cache_string, 600)  -- Cache for 600 seconds
+                if not ok then
+                    ngx.log(ngx.ERR, "Failed to set cache: ", err)
+                    return
+                end
+
+                ngx.arg[1] = nil
+                return
+            end
+            return
+        }
+
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass php:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; 
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
+} 

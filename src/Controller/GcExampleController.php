@@ -18,12 +18,10 @@ class GcExampleController extends AbstractController
     #[Route('/gc-example', name: 'gc_example', methods: ['GET'])]
     public function getData(Request $request): JsonResponse
     {
-        if ($request->query->has('gc_threshold')) {
-            $this->service->setGcThreshold((int)$request->query->get('gc_threshold'));
+        if ($request->query->has('collect_gc')) {
+            return $this->json($this->service->getDataWithGc(true));
         } else {
-            $this->service->setGcThreshold(10_000);
+            return $this->json($this->service->getDataWithGc(false));
         }
-
-        return $this->json($this->service->getDataWithGc());
     }
 } 

@@ -4,8 +4,6 @@ namespace App\Service;
 
 class GcExampleService
 {
-    private int $callCount = 0;
-    private int $gcThreshold = 10;
     private ObjectCache $cache;
 
     public function __construct(ObjectCache $cache)
@@ -26,41 +24,20 @@ class GcExampleService
                 ]
             ];
         }
-
-        $this->callCount++;
         
         return $largeData;
     }
 
-    public function getDataWithGc(): array
+    public function getDataWithGc(bool $collectGc): array
     {
         $data = $this->getLargeData();
         
-        $shouldCollectGarbage = $this->shouldCollectGarbage();
-        if ($shouldCollectGarbage) {
+        if ($collectGc) {
             gc_collect_cycles();
-            $this->resetCallCount();
         }
 
         return [
             'data' => $data,
-            'gc_threshold' => $this->gcThreshold,
-            'garbage_collected' => $shouldCollectGarbage,
         ];
-    }
-
-    private function shouldCollectGarbage(): bool
-    {
-        return $this->callCount >= $this->gcThreshold;
-    }
-
-    private function resetCallCount(): void
-    {
-        $this->callCount = 0;
-    }
-
-    public function setGcThreshold(int $threshold): void
-    {
-        $this->gcThreshold = $threshold;
     }
 } 
